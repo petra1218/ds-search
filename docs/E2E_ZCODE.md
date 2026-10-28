@@ -139,3 +139,33 @@
 | S8 触发可靠性 | ✅ 10/10（≥9/10） |
 
 **M5 G3 验证门通过。** 技能包目录自包含（`skills/ds-search/`：SKILL.md + scripts/ds_cli.py + references/output-schema.md + runtime.conf，无仓库外依赖）。
+
+---
+
+# 发布前回归（M7，2026-10-28 深夜）
+
+> 复跑 S1/S3/S5 三个关键场景（计划 §4 M7 第 2 项），方法同 M5（全新子代理会话）。三个场景全部通过。
+
+## R-S1 · 冷搜中文时效性 —— ✅ 通过
+
+- **模型行为**：触发 ds-search；`search … --refresh` + 2 次 `fetch`（nodejs.org 状态页与 blog）。
+- **命令**：`python "C:\Users\dlwy\.agents\skills\ds-search\scripts\ds_cli.py" search "Node.js current LTS major version latest release 2026" --question "Node.js 目前的 LTS 大版本是哪个？最新一次更新是什么时候发布的？" --refresh` 等 3 条。
+- **输出摘要**：答 Node.js 26 于 2026-10-28（当日）转入 Active LTS；最新安全更新为三条支持线并发的 2026-10-21 批次（26.12.1 / 24.22.1 / 22.23.4）。4 条编号引用（nodejs.org/blog、previous-releases、GitHub nodejs/Release 等）。
+- **一致性核验**：v24.22.1 @ 2026-10-21 与 M5 S1 及 S7 anysearch 交叉核对结果一致 ✓。
+
+## R-S3 · 自主 fetch —— ✅ 通过
+
+- **模型行为**：目标页在 24h 缓存内（M5 S3 已抓过），模型直接 `fetch`（零成本）取得 detect_types 英文原文逐字引用，与 M5 结果一字不差。
+- **命令**：`python "C:\Users\dlwy\.agents\skills\ds-search\scripts\ds_cli.py" fetch "https://docs.python.org/3/library/sqlite3.html"`
+- **判定**：原文引用正确；缓存复用符合设计。
+
+## R-S5 · 重复 query 缓存命中 —— ✅ 通过
+
+- **命令**（同一条原样执行两遍，第二遍外包毫秒计时）：`python C:/Users/dlwy/.agents/skills/ds-search/scripts/ds_cli.py search "DeepSeek V4 API 价格" --question "DeepSeek V4 API 的价格是多少？"`
+- **输出摘要**：两次头部均为 `cached: yes`（该 query 在 M5 S5 实测中已在 24h 缓存内），第二次实测 **399 ms**。模型主动说明"第一次即命中缓存，未产生远端调用"，与缓存语义完全一致。
+- **判定**：重复 query 免费秒回 ✓（M5 S5 已验证过首查 no → 复查 yes 的完整链路）。
+
+## 回归结论
+
+S1 / S3 / S5 全部通过，且关键事实跨会话、跨时间一致。G3 门发布前回归通过，v0.1.0 具备发布条件。
+

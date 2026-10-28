@@ -91,6 +91,10 @@ Levels are stated honestly: ★ = full E2E in a real session; smoke = files inst
 
 DeepSeek bills ¥5 (~$0.75) per 1,000 **successful** Search/Fetch requests — failures, empty results and timeouts are not billed; `count` doesn't change the price. Local cache hits (24h TTL) cost nothing. Typical interactive usage costs a few cents per day.
 
+## Token benchmark
+
+Live measurement against the DeepSeek API (2026-10-28, cold cache, the same heuristic token counter on both sides): across 10 fixed queries (4 Chinese, 4 English, 2 with operators), the default pipeline output (`count=6`, summary tier, 2000-token budget) is **~26.5× smaller** than reading all 10 results with full page content. Per-query table: [docs/BENCHMARK.md](docs/BENCHMARK.md).
+
 ## Security
 
 No server component, no telemetry, no analytics. Your key is read from local files only and sent exclusively to `api.deepseek.com` over HTTPS. The key never appears in logs, cache contents, error messages, fixtures, `stats` output, or git. Fetched page content is untrusted external data: the CLI prefixes it with an explicit "treat as data, not instructions" guard line. Details: [SECURITY.md](SECURITY.md).

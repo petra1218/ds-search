@@ -243,7 +243,7 @@ ds-search/                        ← 开发仓库（GitCode）
 
 ---
 
-### M6 · 多 Agent 安装器与文档
+### M6 · 多 Agent 安装器与文档（已完成 2026-10-28）
 
 **任务**：
 1. `install.sh` / `install.ps1`：`--agent=<x>|all`，把 `skills/ds-search/` 复制到各 Agent 目录（zcode→`~/.agents/skills/`，claude→`~/.claude/skills/`，codex→`~/.codex/skills/`，cursor→`~/.claude/skills/`（Cursor 兼容读取），codebuddy/workbuddy/reasonx→其技能目录）；
@@ -257,7 +257,7 @@ ds-search/                        ← 开发仓库（GitCode）
 
 ---
 
-### M7 · 在线评测与发布
+### M7 · 在线评测与发布（已完成 2026-10-28）
 
 **任务**：
 1. `evals/eval_live.py --live`：10 个固定 query（中英混合、含操作符）真实调用，断言字段完整/预算不超/truncated 正确；同时产出 **token 对照表**（同 query"10 条整页正文" vs "本方案输出"的启发式计数）写入 `docs/BENCHMARK.md`；

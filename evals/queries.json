@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "note": "10 个固定评测 query：4 中文 + 4 英文 + 2 操作符。evals/eval_live.py --live 使用。",
+  "queries": [
+    {"id": "zh-1", "lang": "zh", "query": "Node.js LTS 最新版本", "question": "Node.js 目前的 LTS 大版本和最新更新是什么？"},
+    {"id": "zh-2", "lang": "zh", "query": "DeepSeek V4 API 价格", "question": "DeepSeek V4 API 的价格是多少？"},
+    {"id": "zh-3", "lang": "zh", "query": "2026 年菲尔兹奖得主", "question": "2026 年菲尔兹奖得主是谁？"},
+    {"id": "zh-4", "lang": "zh", "query": "Kubernetes 1.34 发布日期", "question": "Kubernetes 1.34 是什么时候发布的？"},
+    {"id": "en-1", "lang": "en", "query": "latest stable release of uv astral python", "question": null},
+    {"id": "en-2", "lang": "en", "query": "Go 1.27 release notes highlights", "question": null},
+    {"id": "en-3", "lang": "en", "query": "Rust 2026 releases changelog", "question": null},
+    {"id": "en-4", "lang": "en", "query": "TypeScript 7.0 native compiler announcement", "question": null},
+    {"id": "ops-1", "lang": "ops", "query": "Python sqlite3 connect site:docs.python.org", "question": null},
+    {"id": "ops-2", "lang": "ops", "query": "uv releases site:github.com astral-sh", "question": null}
+  ]
+}
