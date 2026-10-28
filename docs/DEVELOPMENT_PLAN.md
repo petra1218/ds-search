@@ -49,7 +49,7 @@ ds-search 把 **DeepSeek 官方 Search / Fetch API**（2026-10-17 上线，`POST
 | NFR-6 | 性能：缓存命中 <100ms；冷调用除网络外开销 <200ms |
 | NFR-7 | 零遥测、无服务器组件：密钥只从本机直发 `api.deepseek.com`，写入 README 安全声明 |
 | NFR-8 | Windows 编码纪律：入口即 `sys.stdout.reconfigure(encoding="utf-8")`；所有文件读写显式 `encoding="utf-8"`。主要用户在中文 Windows，不遵守必乱码/UnicodeEncodeError |
-| NFR-9 | 网络纪律：所有 HTTP 显式超时（连接+读 15s，`--timeout` 可配）；urllib 默认无超时会挂死 Agent 会话；失败退出码 3 |
+| NFR-9 | 网络纪律：所有 HTTP 显式超时，默认 30s、`--timeout` 可配（官方未公布建议值；30s 对齐社区实践示例并为服务端抓整页留余量，M1 以实测延迟校准）；按官方重试规则对 408/429/5xx 自动重试 1 次（短退避）——官方口径：接口幂等只读、失败/空结果/超时的请求不计费；重试仍失败退码 3 |
 
 ### 2.3 兼容矩阵（含调研来源）
 
@@ -118,6 +118,7 @@ ds-search/                        ← 开发仓库（GitCode）
 - **`--full` 语义**：以 `need_content=true` 重搜（计一次请求费）；全局 token 预算不变，按结果顺序分配，单条 content 超其份额即截断并标注 `[截断]`；信封头 `truncated` 仅在有条目因预算被整体丢弃时为 true。
 - **缓存格式**：定为每查询一个 JSON 文件（文件名=SHA256 键，ASCII 安全；透明可调试，无锁问题）。
 - **入口校验**：`--count` ∈ [1,50]、query 与 `--question` ≤128 字符、fetch URL ≤8192 且为 http(s)；越界退码 2 并给一行原因。
+- **官方错误码与重试口径**（2026-10-28 补充核实）：403/404 仅出现在 Fetch（安全拒绝/无可用内容）；408=读取请求体超时；413=请求体过大；429=超过 Search/Fetch 的 QPS 限制；500/504=服务端/下游超时。官方重试规则：408/429/5xx 等待后重试（接口只读幂等，无副作用）；**失败、空结果、超时的请求不计费**；计价官方口径 ¥5/千次成功请求（≈US$0.7，与 $0.75/1k 的第三方报道一致），`count` 不影响单价。
 
 输出样例（契约 v1）：
 
@@ -162,7 +163,8 @@ ds-search/                        ← 开发仓库（GitCode）
 1. 从 `~/.ds-search/.env` 读密钥，真实调用 search 接口 ≥3 次（中文 query、英文 query、带 `site:`/`after:` 操作符的 query）与 fetch 接口 ≥2 次；
 2. 原始响应原样存入 `tests/fixtures/`（search_*.json / fetch_*.json），逐个检查不含密钥；
 3. 写 `tests/test_schema.py`：断言响应字段与官方文档一致（含 `rerank_score` 0-3、`authority` 0-4、`summary` 长度量级、`date` RFC3339）；
-4. 起草 `docs/output-schema.md`（契约 v1）：信封头字段、条目格式、truncated 语义、错误输出格式。
+4. 起草 `docs/output-schema.md`（契约 v1）：信封头字段、条目格式、truncated 语义、错误输出格式；
+5. 完整重读官方指南全文（此前抓取被截断，未覆盖错误码/计费/重试章节），与 §3"官方错误码与重试口径"逐条核对，差异写回本计划。
 
 **验收**：`python -m unittest discover tests` 全绿；fixtures ≥5 个且脱敏；契约文档覆盖信封头全部字段。
 
