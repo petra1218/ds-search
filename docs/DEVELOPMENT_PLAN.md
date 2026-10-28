@@ -173,7 +173,7 @@ ds-search/                        ← 开发仓库（GitCode）
 
 ---
 
-### M2 · CLI search 核心
+### M2 · CLI search 核心（已完成 2026-10-28）
 
 **任务**：
 1. `skills/ds-search/scripts/ds_cli.py` 单文件骨架：参数解析、退出码规范（0 成功 / 2 配置错 / 3 网络与 API 错）；

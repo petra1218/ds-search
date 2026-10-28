@@ -17,8 +17,10 @@
 
 - 信封头：N=返回条数（去重后）；T=本次输出总 token 估计；`truncated` 见 §4；`cached` 命中本地缓存时为 yes。
 - 条目按 API 返回顺序排列（服务端已重排，客户端不重排）。
-- `--full` 模式条目在 summary 之后追加 `content`，单条超其预算份额时截断并以 `…[截断]` 结尾。
-- 尾行提示固定三段，用 ` | ` 分隔；K=0 时仍显示 `0条` 保持结构稳定。
+- 预算装入规则（M2 实现）：默认模式贪心装入，首条必有——首条自身超预算时其 summary 截断贴合预算（标题+URL 恒可见）；有条目因预算被整体丢弃时信封头下一行输出 `> 已省略 J 条（token 预算所限，可提高 --budget）`。
+- `--full` 模式条目在 summary 之后追加 `content`；预算均分（budget÷N），单条超份额即截断并以 `…[截断]` 结尾；此模式不整条丢弃，故信封头 `truncated` 恒为 false（除非经 `--min-score` 过滤后为空）。
+- 尾行提示固定三段，用 ` | ` 分隔；K=**输出条目中** rerank_score<1.5 的条数（K=0 时仍显示 `0条` 保持结构稳定）。
+- `--json` 模式的 `results` 同样服从默认模式的预算裁剪（`returned` 可小于 `total_found`，`truncated: true`）。
 - 空结果（HTTP 200 且 `results` 为空，不计费）：
   ```
   # ds-search "<query>" | 0条 | ~0 tokens | truncated: false | cached: no | contract: v1
@@ -42,8 +44,8 @@
 
 | 场景 | 触发 | 含义 |
 |---|---|---|
-| search 全局 | 有条目因预算被整体丢弃（未输出） | 尾行前显示 `truncated: true`，且信封头后注明 `已省略 J 条` |
-| search 单条（--full） | content 超其份额被截断 | 条目内 `…[截断]` 标注 |
+| search 全局 | 默认模式下有条目因预算被整体丢弃（未输出） | 信封头 `truncated: true`，下一行 `> 已省略 J 条（token 预算所限，可提高 --budget）` |
+| search 单条 | 首条超预算截 summary，或 `--full` 模式 content 超份额 | 条目内 `…[截断]` 标注 |
 | fetch 窗口 | 内容超预算切窗 | `truncated: true` + 续读提示 |
 
 任何截断必须显式标注，绝不静默丢弃。
