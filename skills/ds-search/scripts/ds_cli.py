@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import re
+import statistics
 import sys
 import time
 import urllib.error
@@ -384,11 +385,154 @@ def cmd_fetch(args, home, env, skill_dir):
     if record is None:
         started = time.time()
         response = api_post(key, "/v1/tools/fetch", payload, args.timeout)
-        cache_set(home, payload, response, meta={"latency_ms": int((time.time() - started) * 1000)})
+        cache_set(home, payload, response,
+                  meta={"latency_ms": int((time.time() - started) * 1000),
+                        "tokens_est": count_tokens(json.dumps(response, ensure_ascii=False))})
     else:
         response = record["response"]
+        cache_record_hit(home, payload, record)
     print(format_fetch(url, response.get("title", ""), response.get("content", ""),
                        args.offset, args.budget))
+    return 0
+
+
+# ---------- 管理子命令（M4：setup / doctor / stats / cache） ----------
+
+def write_key_file(home, key):
+    """写入 ~/.ds-search/.env。返回路径。"""
+    directory = Path(home) / ".ds-search"
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / ".env"
+    path.write_text(f"DEEPSEEK_API_KEY={key}\n", encoding="utf-8")
+    try:
+        path.chmod(0o600)
+    except OSError:
+        pass  # Windows 无 POSIX 权限位
+    return path
+
+
+def _cache_files(home):
+    directory = cache_dir(home)
+    return sorted(directory.glob("*.json")) if directory.exists() else []
+
+
+def _cache_size(files):
+    return sum(p.stat().st_size for p in files)
+
+
+def cache_record_hit(home, payload, record):
+    """缓存命中时回写 hits 计数（幂等重写同一文件）。"""
+    record = {"ts": record.get("ts", time.time()), "payload": record.get("payload", payload),
+              "response": record.get("response"), "meta": dict(record.get("meta", {}))}
+    record["meta"]["hits"] = record["meta"].get("hits", 0) + 1
+    (cache_dir(home) / (cache_key(payload) + ".json")).write_text(
+        json.dumps(record, ensure_ascii=False), encoding="utf-8")
+
+
+def render_stats(files):
+    """纯函数：从缓存文件列表渲染统计文本（cmd_stats 只做 IO 装配）。"""
+    calls = {"search": 0, "fetch": 0}
+    latencies, hits, tokens = [], 0, 0
+    for path in files:
+        try:
+            record = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        meta = record.get("meta", {})
+        payload = record.get("payload", {})
+        calls["search" if "query" in payload else "fetch"] += 1
+        if "latency_ms" in meta:
+            latencies.append(meta["latency_ms"])
+        hits += meta.get("hits", 0)
+        tokens += meta.get("tokens_est", 0)
+    avg = int(statistics.mean(latencies)) if latencies else 0
+    lines = [f"缓存记录: {len(files)} 条（{_cache_size(files) // 1024} KB）",
+             f"调用构成: search {calls['search']} 次 / fetch {calls['fetch']} 次",
+             f"平均耗时: {avg} ms（冷调用，不含缓存命中）",
+             f"缓存命中: {hits} 次（命中不计费、不产生网络请求）",
+             f"累计响应体量: ~{tokens} tokens（启发式估计）"]
+    return "\n".join(lines)
+
+
+def render_doctor(py_version, key_state, verify_status, cache_files):
+    """纯函数：三态诊断文本。key_state ∈ {none, invalid, ok}; verify_status 为附加信息或 None。"""
+    lines = [f"Python: {py_version}（要求 3.7+）"]
+    if key_state == "none":
+        lines.append("KEY: 未配置（-k / 环境变量 / ~/.ds-search/.env 均未发现）")
+        lines.append("诊断: 未配置。按 ds_cli.py setup 引导完成配置")
+        code = 2
+    elif key_state == "invalid":
+        lines.append(f"KEY: 已配置但无效{('（' + verify_status + '）') if verify_status else ''}")
+        lines.append("诊断: Key 无效。到 platform.deepseek.com 确认后更新 ~/.ds-search/.env")
+        code = 3
+    else:
+        lines.append(f"KEY: 有效{('（' + verify_status + '）') if verify_status else ''}")
+        lines.append("诊断: 正常")
+        code = 0
+    lines.append(f"缓存: {len(cache_files)} 条记录，{_cache_size(cache_files) // 1024} KB")
+    return "\n".join(lines), code
+
+
+def cmd_setup(args, home, env, skill_dir):
+    if args.key:
+        key = args.key.strip()
+    else:
+        print("将从 https://platform.deepseek.com 获取 API Key，粘贴到下面（输入不回显内容，仅写入本地文件）。")
+        try:
+            sys.stdout.write("Key: ")
+            key = input().strip()
+        except EOFError:
+            print("ERROR 配置: 未读到输入。可改用: ds_cli.py setup --key <KEY> 或手动编辑 ~/.ds-search/.env")
+            return 2
+    if not key.startswith("sk-"):
+        print("ERROR 配置: Key 应以 sk- 开头，已取消写入")
+        return 2
+    path = write_key_file(home, key)
+    print(f"已写入 {path}（Key 不回显）")
+    try:
+        api_post(key, "/v1/tools/search", {"query": "connectivity test", "count": 1}, 30)
+        print("验证通过：Key 可用")
+        return 0
+    except ApiError as exc:
+        print(error_line(exc))
+        print("Key 已保存，但验证未通过——请检查后再试（doctor 可随时复检）")
+        return 3 if exc.status else 3
+
+
+def cmd_doctor(args, home, env, skill_dir):
+    key = resolve_key(args.api_key, env, home, skill_dir)
+    files = _cache_files(home)
+    if not key:
+        text, code = render_doctor(sys.version.split()[0], "none", None, files)
+        print(text)
+        return code
+    try:
+        started = time.time()
+        api_post(key, "/v1/tools/search", {"query": "connectivity test", "count": 1}, 30)
+        verify = f"校验调用 {int((time.time() - started) * 1000)} ms"
+        text, code = render_doctor(sys.version.split()[0], "ok", verify, files)
+    except ApiError as exc:
+        state = "invalid" if exc.status == 401 else "none"
+        text, code = render_doctor(sys.version.split()[0], state,
+                                   f"网络/API: {exc}" if exc.status != 401 else None, files)
+    print(text)
+    return code
+
+
+def cmd_stats(args, home):
+    print(render_stats(_cache_files(home)))
+    return 0
+
+
+def cmd_cache(args, home):
+    if args.action != "clean":
+        print("用法: ds_cli.py cache clean")
+        return 2
+    files = _cache_files(home)
+    freed = _cache_size(files)
+    for path in files:
+        path.unlink()
+    print(f"已清空缓存：{len(files)} 条记录，释放 {freed // 1024} KB")
     return 0
 
 
@@ -416,10 +560,13 @@ def cmd_search(args, home, env, skill_dir):
         started = time.time()
         response = api_post(key, "/v1/tools/search", payload, args.timeout)
         latency_ms = int((time.time() - started) * 1000)
-        cache_set(home, payload, response, meta={"latency_ms": latency_ms})
-        record = {"response": response, "meta": {"latency_ms": latency_ms}}
+        cache_set(home, payload, response,
+                  meta={"latency_ms": latency_ms,
+                        "tokens_est": count_tokens(json.dumps(response, ensure_ascii=False))})
+        record = {"response": response, "meta": {}}
     else:
         record["meta"]["cache_hit"] = True
+        cache_record_hit(home, payload, record)
     cached = "cache_hit" in record["meta"]
 
     results = record["response"].get("results", [])
@@ -457,6 +604,12 @@ def build_parser():
     fetch.add_argument("--offset", type=int, default=0, help="字符偏移（续读上一窗口）")
     fetch.add_argument("--refresh", action="store_true", help="绕过缓存强制重抓")
     fetch.add_argument("--timeout", type=int, default=30, help="HTTP 超时秒数，默认 30")
+    setup = sub.add_parser("setup", help="交互式配置 API Key")
+    setup.add_argument("--key", default=None, help="非交互模式直接传入 Key")
+    doctor = sub.add_parser("doctor", help="自检：Python/Key/网络/缓存")
+    stats = sub.add_parser("stats", help="缓存与调用统计")
+    cache = sub.add_parser("cache", help="缓存管理")
+    cache.add_argument("action", choices=["clean"])
     return parser
 
 
@@ -473,6 +626,16 @@ def main(argv=None):
         if args.command == "fetch":
             return cmd_fetch(args, Path.home(), dict(os.environ),
                              Path(__file__).resolve().parent.parent)
+        if args.command == "setup":
+            return cmd_setup(args, Path.home(), dict(os.environ),
+                             Path(__file__).resolve().parent.parent)
+        if args.command == "doctor":
+            return cmd_doctor(args, Path.home(), dict(os.environ),
+                              Path(__file__).resolve().parent.parent)
+        if args.command == "stats":
+            return cmd_stats(args, Path.home())
+        if args.command == "cache":
+            return cmd_cache(args, Path.home())
     except ConfigError as exc:
         print(exc)
         return 2

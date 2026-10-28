@@ -205,7 +205,7 @@ ds-search/                        ← 开发仓库（GitCode）
 
 ---
 
-### M4 · setup / doctor / stats / cache
+### M4 · setup / doctor / stats / cache（已完成 2026-10-28）
 
 **任务**：
 1. `setup`：交互引导（取 key 指引 → 写 `~/.ds-search/.env` → 校验调用 → 回显结果），非交互模式 `--key`；
