@@ -220,7 +220,7 @@ ds-search/                        ← 开发仓库（GitCode）
 
 ---
 
-### M5 · 技能包 + ZCode 实测（关键关卡，过此关才谈发布）
+### M5 · 技能包 + ZCode 实测（关键关卡，过此关才谈发布；已完成 2026-10-28，实测记录见 docs/E2E_ZCODE.md，S1–S7 全过、S8 10/10）
 
 **任务**：
 1. `skills/ds-search/SKILL.md`（中英）：**YAML frontmatter 必备**（`name: ds-search` 与目录名一致；`description` 按 skill-creator 规范写得主动——写清做什么+何时触发，因为模型倾向于漏触发）、触发条件、两步升级阶梯（先 search 后 fetch 只取相关）、操作符速查表、缓存与 `--refresh` 说明、"summary 已够大多数问题"的行为规范、输出示例（示例胜过规则）；
