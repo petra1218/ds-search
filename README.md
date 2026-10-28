@@ -10,7 +10,7 @@
 
 - `search` — numbered, compact results using DeepSeek's server-side `summary` tier (600–800 chars, designed for LLM reading), annotated with `rerank_score` / `authority` / `date`, deduped, capped by a token budget (`--budget`), never silently truncated.
 - `fetch` — cleaned Markdown of a single page, windowed by token budget with `--offset` continuation.
-- Three integration layers, one core: plain CLI (any agent with a shell) · Agent Skill (`SKILL.md`, works with ZCode / Claude Code / Codex / Cursor / CodeBuddy / WorkBuddy / ReasonX …) · stdio MCP (MCP-only agents).
+- Two integration layers, one core: plain CLI (any agent with a shell) · Agent Skill (`SKILL.md`, works with ZCode / Claude Code / Codex / Cursor / CodeBuddy / WorkBuddy / ReasonX …). No MCP layer — every target agent reads skills or can run the CLI directly.
 - Keys stay on your machine and are sent only to `api.deepseek.com`. No server component. Zero telemetry.
 
 ## License
