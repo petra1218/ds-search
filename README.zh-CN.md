@@ -35,12 +35,6 @@ cd ds-search
 ./install.sh --agent=all
 ```
 
-**`npx skills add`（辅助方式）：**
-
-```bash
-npx skills add petra1218/ds-search
-```
-
 **配置密钥**（任选其一）：
 
 ```bash
@@ -77,8 +71,8 @@ python $DS cache clean
 | Agent | 技能支持 | 适配方式 | 验证等级 |
 |---|---|---|---|
 | ZCode | `~/.agents/skills/` | Skill | ★ 本机亲测（E2E 实测：[docs/E2E_ZCODE.md](docs/E2E_ZCODE.md)） |
-| Claude Code | `~/.claude/skills/`；`npx skills add` | Skill | 冒烟 |
-| Codex | `~/.codex/skills/`；`npx skills add` | Skill | 冒烟 |
+| Claude Code | `~/.claude/skills/` | Skill | 冒烟 |
+| Codex | `~/.codex/skills/` | Skill | 冒烟 |
 | Cursor | 官方文档确认兼容读取 `.claude`/`.codex` 技能目录 | Skill | 文档级 |
 | CodeBuddy | 官方博客实证支持 SKILL.md 技能 | Skill | 文档级 |
 | WorkBuddy | 内置 Skills 扩展能力（第三方介绍） | Skill | 文档级 |

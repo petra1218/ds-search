@@ -245,6 +245,8 @@ ds-search/                        ← 开发仓库（GitCode）
 
 ### M6 · 多 Agent 安装器与文档（已完成 2026-10-28）
 
+**2026-10-29 复核差异（照实记录）**：任务 2 原定的辅助安装渠道 `npx skills add petra1218/ds-search` **不可用**——`skills` CLI（vercel-labs，npm v1.7.4）面向 GitHub 解析 `owner/repo` 简写（其 `--owner` 帮助项原话为 "Search only repositories from a GitHub owner"，包文档仅引用 skills.sh/GitHub），本仓库首发 GitCode。两份 README 已移除该命令及矩阵中的相关提法；若日后建立 GitHub 镜像可恢复此渠道。教训入册：写入 README/发布说明的命令必须先在本机实证，或明确标注"未验证"。
+
 **任务**：
 1. `install.sh` / `install.ps1`：`--agent=<x>|all`，把 `skills/ds-search/` 复制到各 Agent 目录（zcode→`~/.agents/skills/`，claude→`~/.claude/skills/`，codex→`~/.codex/skills/`，cursor→`~/.claude/skills/`（Cursor 兼容读取），codebuddy/workbuddy/reasonx→其技能目录）；
 2. `README.md`（英）+ `README.zh-CN.md`（中）：定位、两层形态、安装（手工为主 / `npx skills add` 为辅）、兼容矩阵与验证等级、安全声明（无服务器/零遥测/密钥只进官方端点）、费用说明（$0.75/千次）；

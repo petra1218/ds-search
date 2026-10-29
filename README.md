@@ -35,12 +35,6 @@ cd ds-search
 ./install.sh --agent=all
 ```
 
-**`npx skills add` (secondary):**
-
-```bash
-npx skills add petra1218/ds-search
-```
-
 **Configure the key** (either way):
 
 ```bash
@@ -77,8 +71,8 @@ Search operators pass through to the engine: `site:` `-site:` `"exact phrase"` `
 | Agent | Skill support | Integration | Verification level |
 |---|---|---|---|
 | ZCode | `~/.agents/skills/` | Skill | ★ tested by us (E2E: [docs/E2E_ZCODE.md](docs/E2E_ZCODE.md)) |
-| Claude Code | `~/.claude/skills/`; `npx skills add` | Skill | smoke test |
-| Codex | `~/.codex/skills/`; `npx skills add` | Skill | smoke test |
+| Claude Code | `~/.claude/skills/` | Skill | smoke test |
+| Codex | `~/.codex/skills/` | Skill | smoke test |
 | Cursor | reads `.claude` / `.codex` skill dirs (official docs) | Skill | docs-level |
 | CodeBuddy | official blog confirms SKILL.md skills | Skill | docs-level |
 | WorkBuddy | built-in Skills extension (third-party reports) | Skill | docs-level |
