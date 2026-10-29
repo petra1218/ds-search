@@ -22,7 +22,7 @@ Requires Python 3.7+ (stdlib only, no pip dependencies) and a DeepSeek API key f
 **Manual install (primary):**
 
 ```bash
-git clone https://gitcode.com/petra1218/ds-search.git
+git clone https://gitcode.com/petra1218/ds-search.git   # or GitHub mirror: git clone https://github.com/petra1218/ds-search.git
 cd ds-search
 
 # ZCode
@@ -33,6 +33,12 @@ cd ds-search
 ./install.sh --agent=codex
 ./install.sh --agent=cursor
 ./install.sh --agent=all
+```
+
+**`npx skills add` (via the GitHub mirror; tested working):**
+
+```bash
+npx skills add petra1218/ds-search
 ```
 
 **Configure the key** (either way):

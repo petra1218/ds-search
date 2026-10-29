@@ -246,6 +246,7 @@ ds-search/                        ← 开发仓库（GitCode）
 ### M6 · 多 Agent 安装器与文档（已完成 2026-10-28）
 
 **2026-10-29 复核差异（照实记录）**：任务 2 原定的辅助安装渠道 `npx skills add petra1218/ds-search` **不可用**——`skills` CLI（vercel-labs，npm v1.7.4）面向 GitHub 解析 `owner/repo` 简写（其 `--owner` 帮助项原话为 "Search only repositories from a GitHub owner"，包文档仅引用 skills.sh/GitHub），本仓库首发 GitCode。两份 README 已移除该命令及矩阵中的相关提法；若日后建立 GitHub 镜像可恢复此渠道。教训入册：写入 README/发布说明的命令必须先在本机实证，或明确标注"未验证"。
+**【后续同日】** GitHub 镜像建立后（见 §6 注记），该渠道已实测恢复：`npx -y skills add petra1218/ds-search -l` 成功识别（"Found 1 skill: ds-search"）。本机偶发克隆中断（HTTPS 不通/SSH 传输断流）为网络问题而非渠道问题，重试即可；README 已恢复该渠道并标注"经 GitHub 镜像"。
 
 **任务**：
 1. `install.sh` / `install.ps1`：`--agent=<x>|all`，把 `skills/ds-search/` 复制到各 Agent 目录（zcode→`~/.agents/skills/`，claude→`~/.claude/skills/`，codex→`~/.codex/skills/`，cursor→`~/.claude/skills/`（Cursor 兼容读取），codebuddy/workbuddy/reasonx→其技能目录）；
@@ -282,6 +283,12 @@ ds-search/                        ← 开发仓库（GitCode）
 | G4 社区反馈 | issue 驱动，矩阵等级更新 | 发布后 |
 
 ## 6. GitCode 发布流程
+
+**2026-10-29 双平台发布启用（GitHub 镜像）**：新增镜像仓库 `github.com/petra1218/ds-search`（GitHub 账号同为 petra1218）。机制：
+- origin 挂双 pushurl（`git remote set-url --add --push origin <gitcode>` 与 `<github>` 各一次），`git push origin main --tags` 一条命令同步双平台；fetch 仍只走 GitCode；
+- Release 双平台各自 API 创建，正文同源：GitCode 用环境变量 `ATOMGIT_TOKEN`（`PRIVATE-TOKEN` 请求头），GitHub 用 `GITHUB_TOKEN`（`Bearer` 请求头）——两个令牌均存于 Windows 用户级环境变量（HKCU\Environment）；
+- GitCode 仍为权威首发与主仓库（D10 不变），GitHub 面向海外访问与 skills 生态（`npx skills add`）渠道；
+- 本机网络到 GitHub 的 HTTPS 不稳定（clone 偶发断流），SSH 22 端口可用，推送失败重试即可。
 
 1. SSH：本机生成/确认 `~/.id_rsa` 公钥已加入 GitCode 账户（push 失败时先查此处）；
 2. 分支：`main` 单线推进，里程碑一提交；

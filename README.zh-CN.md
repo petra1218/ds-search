@@ -22,7 +22,7 @@ English docs: [README.md](README.md) · 开发计划：[docs/DEVELOPMENT_PLAN.md
 **手工安装（主要方式）：**
 
 ```bash
-git clone https://gitcode.com/petra1218/ds-search.git
+git clone https://gitcode.com/petra1218/ds-search.git   # 或 GitHub 镜像：git clone https://github.com/petra1218/ds-search.git
 cd ds-search
 
 # ZCode
@@ -33,6 +33,12 @@ cd ds-search
 ./install.sh --agent=codex
 ./install.sh --agent=cursor
 ./install.sh --agent=all
+```
+
+**`npx skills add`（经 GitHub 镜像，已实测可用）：**
+
+```bash
+npx skills add petra1218/ds-search
 ```
 
 **配置密钥**（任选其一）：
