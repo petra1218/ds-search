@@ -1,4 +1,4 @@
-# ds-search 安装器（Windows PowerShell）：把 skills/ds-search/ 复制到各 Agent 技能目录。
+﻿# ds-search 安装器（Windows PowerShell）：把 skills/ds-search/ 复制到各 Agent 技能目录。
 # 幂等：重复安装覆盖旧版并提示。仅分发 skills/ds-search/ 一个自包含目录。
 # 用法: .\install.ps1 -Agent zcode   （可选值 zcode|claude|codex|cursor|codebuddy|workbuddy|reasonx|all）
 param(
@@ -36,9 +36,8 @@ function Install-To([string]$Name, [string]$Dest) {
   }
   New-Item -ItemType Directory -Force -Path (Split-Path $Dest) | Out-Null
   Copy-Item -Recurse -Force $Src $Dest
-  # runtime.conf 记录本机可执行命令，落位后改写为安装路径
-  "Runtime: Python`nCommand: python $Dest\scripts\ds_cli.py" |
-    Set-Content -Path (Join-Path $Dest "runtime.conf") -Encoding utf8
+  # runtime.conf 记录本机可执行命令，落位后改写为安装路径（WriteAllText 默认 UTF-8 无 BOM，PS 5.1/7 行为一致）
+  [System.IO.File]::WriteAllText((Join-Path $Dest "runtime.conf"), "Runtime: Python`nCommand: python $Dest\scripts\ds_cli.py")
   if (-not (Test-Path (Join-Path $Dest "SKILL.md")) -or
       -not (Test-Path (Join-Path $Dest "scripts\ds_cli.py"))) {
     Write-Error "[$Name] 错误: 安装不完整（缺 SKILL.md 或 scripts/ds_cli.py）"

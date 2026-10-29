@@ -248,6 +248,8 @@ ds-search/                        ← 开发仓库（GitCode）
 **2026-10-29 复核差异（照实记录）**：任务 2 原定的辅助安装渠道 `npx skills add petra1218/ds-search` **不可用**——`skills` CLI（vercel-labs，npm v1.7.4）面向 GitHub 解析 `owner/repo` 简写（其 `--owner` 帮助项原话为 "Search only repositories from a GitHub owner"，包文档仅引用 skills.sh/GitHub），本仓库首发 GitCode。两份 README 已移除该命令及矩阵中的相关提法；若日后建立 GitHub 镜像可恢复此渠道。教训入册：写入 README/发布说明的命令必须先在本机实证，或明确标注"未验证"。
 **【后续同日】** GitHub 镜像建立后（见 §6 注记），该渠道已实测恢复：`npx -y skills add petra1218/ds-search -l` 成功识别（"Found 1 skill: ds-search"）。本机偶发克隆中断（HTTPS 不通/SSH 传输断流）为网络问题而非渠道问题，重试即可；README 已恢复该渠道并标注"经 GitHub 镜像"。
 
+**【2026-10-29 缺陷修复】install.ps1 编码**：M6 验收演练只执行了 install.sh，install.ps1 写完未实测——国内中文 Windows 的 PowerShell 5.1 把无 BOM UTF-8 按 GBK 解析，含中文的脚本直接语法报错（复现：第 5/46 行"字符串缺少终止符"）。修复：install.ps1 保存为带 BOM 的 UTF-8；其写 runtime.conf 改用 `WriteAllText`（PS 5.1 的 `-Encoding utf8` 会带 BOM，与 install.sh 生成的无 BOM 格式不一致）。新增 `tests/test_install.py` 三条守护：.ps1 必须带 BOM、.sh 必须不带 BOM（BOM 破坏 shebang）、两安装器目标集合一致。教训：**安装器类交付物必须每种脚本解释器各实测一次，"写完"不等于"验证过"**。
+
 **任务**：
 1. `install.sh` / `install.ps1`：`--agent=<x>|all`，把 `skills/ds-search/` 复制到各 Agent 目录（zcode→`~/.agents/skills/`，claude→`~/.claude/skills/`，codex→`~/.codex/skills/`，cursor→`~/.claude/skills/`（Cursor 兼容读取），codebuddy/workbuddy/reasonx→其技能目录）；
 2. `README.md`（英）+ `README.zh-CN.md`（中）：定位、两层形态、安装（手工为主 / `npx skills add` 为辅）、兼容矩阵与验证等级、安全声明（无服务器/零遥测/密钥只进官方端点）、费用说明（$0.75/千次）；

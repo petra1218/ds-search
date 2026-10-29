@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `install.ps1` is now saved as UTF-8 **with BOM**: Windows PowerShell 5.1 parses BOM-less files with the legacy ANSI code page (GBK on Chinese Windows) and failed with syntax errors on the script's Chinese text. `runtime.conf` written by the PowerShell installer is now BOM-less on both PowerShell 5.1 and 7 (via `WriteAllText`). Guarded by `tests/test_install.py` (BOM present in `.ps1`, absent in `.sh`, target sets in sync).
+
 ## [0.1.0] - 2026-10-28
 
 ### Added
