@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-31
+
+### Notes
+
+- Maintenance release with **no code changes** since 0.1.3: the 0.1.x line is complete (installer hardening and the version-stamping update loop landed in 0.1.1–0.1.3), and this bump opens the 0.2.x development cycle. Tree is identical to `v0.1.3`.
+- Output contract v1 unchanged. Updating is optional: `git pull` + re-run either installer (idempotent; keys and cache are never touched), or `npx skills update ds-search` for npx-installed copies.
+
 ## [0.1.3] - 2026-10-31
 
 ### Fixed
@@ -54,7 +61,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No MCP layer by design (decision D9): every target agent reads skills or runs the CLI.
 - Released on GitCode first; tag `v0.1.0`.
 
-[Unreleased]: https://gitcode.com/petra1218/ds-search/compare/v0.1.3...main
+[Unreleased]: https://gitcode.com/petra1218/ds-search/compare/v0.2.0...main
+[0.2.0]: https://gitcode.com/petra1218/ds-search/compare/v0.1.3...v0.2.0
 [0.1.3]: https://gitcode.com/petra1218/ds-search/compare/v0.1.2...v0.1.3
 [0.1.2]: https://gitcode.com/petra1218/ds-search/compare/v0.1.1...v0.1.2
 [0.1.1]: https://gitcode.com/petra1218/ds-search/compare/v0.1.0...v0.1.1
