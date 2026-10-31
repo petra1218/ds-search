@@ -41,6 +41,15 @@ class InstallerEncodingTests(unittest.TestCase):
         repo_conf = (REPO / "skills" / "ds-search" / "runtime.conf").read_text(encoding="utf-8")
         self.assertIn("Version:", repo_conf)
 
+    def test_install_ps1_git_probe_tolerates_failure(self):
+        """PS 5.1 + EAP=Stop 时原生命令 stderr 重定向会抛终止性错误——git 探测必须临时放宽 EAP
+        （v0.1.2 回归：非 git 环境（zip 安装）下安装器直接崩溃）。此断言防止被"简化"回去。"""
+        ps1 = (REPO / "install.ps1").read_text(encoding="utf-8-sig")
+        self.assertIn('$ErrorActionPreference = "Continue"', ps1)
+        self.assertIn('$ErrorActionPreference = "Stop"', ps1)
+        # 探测失败回退 dev 的分支必须在
+        self.assertIn('if (-not $Version) { $Version = "dev" }', ps1)
+
 
 if __name__ == "__main__":
     unittest.main()

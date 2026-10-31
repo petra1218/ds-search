@@ -11,10 +11,14 @@ $ErrorActionPreference = "Stop"
 $Src = Join-Path $PSScriptRoot "skills\ds-search"
 $SkillName = "ds-search"
 
-# 版本戳：安装时取自 git tag，写入 runtime.conf 供 doctor 回显（无 git 环境退 dev）
+# 版本戳：安装时取自 git tag，写入 runtime.conf 供 doctor 回显（无 git 环境退 dev）。
+# 注意：PS 5.1 下 EAP=Stop 时原生命令 stderr 重定向（2>$null）会抛终止性错误，
+# 故探测 git 期间临时放宽为 Continue，探测完恢复。
 $Version = "dev"
 if (Get-Command git -ErrorAction SilentlyContinue) {
+  $ErrorActionPreference = "Continue"
   $Version = git -C $PSScriptRoot describe --tags 2>$null
+  $ErrorActionPreference = "Stop"
   if (-not $Version) { $Version = "dev" }
 }
 

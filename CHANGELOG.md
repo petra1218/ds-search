@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-31
+
+### Fixed
+
+- `install.ps1` crashed under Windows PowerShell 5.1 when run from a non-git copy (e.g. a Release zip download): with `$ErrorActionPreference = "Stop"`, redirecting a native command's stderr (`git describe --tags 2>$null`) raises a terminating error. The git probe now temporarily relaxes the preference and always falls back to `dev`. Regression-guarded in `tests/test_install.py`. Happy path (install from a git clone) was always fine; this fixes the zip-download path introduced with version stamping in 0.1.2.
+
+### Verified
+
+- `npx skills add petra1218/ds-search` and `npx skills update ds-search` tested end-to-end in an isolated project (agent name for the skills CLI is `claude-code`; the command in the README installs interactively without `-a`). Update confirms "up to date" via `skills-lock.json` source tracking.
+- Non-git fallback (`Version: dev`) now tested for **both** installers under PS 5.1 and Git Bash.
+
 ## [0.1.2] - 2026-10-31
 
 ### Added
@@ -43,7 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No MCP layer by design (decision D9): every target agent reads skills or runs the CLI.
 - Released on GitCode first; tag `v0.1.0`.
 
-[Unreleased]: https://gitcode.com/petra1218/ds-search/compare/v0.1.2...main
+[Unreleased]: https://gitcode.com/petra1218/ds-search/compare/v0.1.3...main
+[0.1.3]: https://gitcode.com/petra1218/ds-search/compare/v0.1.2...v0.1.3
 [0.1.2]: https://gitcode.com/petra1218/ds-search/compare/v0.1.1...v0.1.2
 [0.1.1]: https://gitcode.com/petra1218/ds-search/compare/v0.1.0...v0.1.1
 [0.1.0]: https://gitcode.com/petra1218/ds-search/releases/tag/v0.1.0
