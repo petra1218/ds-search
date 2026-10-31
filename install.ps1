@@ -11,6 +11,13 @@ $ErrorActionPreference = "Stop"
 $Src = Join-Path $PSScriptRoot "skills\ds-search"
 $SkillName = "ds-search"
 
+# 版本戳：安装时取自 git tag，写入 runtime.conf 供 doctor 回显（无 git 环境退 dev）
+$Version = "dev"
+if (Get-Command git -ErrorAction SilentlyContinue) {
+  $Version = git -C $PSScriptRoot describe --tags 2>$null
+  if (-not $Version) { $Version = "dev" }
+}
+
 if (-not (Test-Path (Join-Path $Src "SKILL.md"))) {
   Write-Error "错误: 未找到 $Src（请在仓库根目录运行）"
 }
@@ -36,8 +43,8 @@ function Install-To([string]$Name, [string]$Dest) {
   }
   New-Item -ItemType Directory -Force -Path (Split-Path $Dest) | Out-Null
   Copy-Item -Recurse -Force $Src $Dest
-  # runtime.conf 记录本机可执行命令，落位后改写为安装路径（WriteAllText 默认 UTF-8 无 BOM，PS 5.1/7 行为一致）
-  [System.IO.File]::WriteAllText((Join-Path $Dest "runtime.conf"), "Runtime: Python`nCommand: python $Dest\scripts\ds_cli.py")
+  # runtime.conf 记录版本与本机可执行命令，落位后改写为安装路径（WriteAllText 默认 UTF-8 无 BOM，PS 5.1/7 行为一致）
+  [System.IO.File]::WriteAllText((Join-Path $Dest "runtime.conf"), "Runtime: Python`nVersion: $Version`nCommand: python $Dest\scripts\ds_cli.py")
   if (-not (Test-Path (Join-Path $Dest "SKILL.md")) -or
       -not (Test-Path (Join-Path $Dest "scripts\ds_cli.py"))) {
     Write-Error "[$Name] 错误: 安装不完整（缺 SKILL.md 或 scripts/ds_cli.py）"

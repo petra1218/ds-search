@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-31
+
+### Added
+
+- Installed-version visibility, closing the update loop: both installers now stamp the version (from `git describe --tags`, `dev` fallback) into `runtime.conf`, and `doctor` shows it as its first line (`版本: v0.1.2`) — so any installed copy can tell which release it is. Repo checkouts report `dev`.
+- "Update" section in both READMEs: the installer is idempotent, so updating = `git pull` + re-run it (keys and cache are never touched); `npx skills update ds-search` for `npx`-installed copies.
+- Guarded by new tests: version line in both installer templates and repo `runtime.conf`, `doctor` version rendering, `read_runtime_version` parsing.
+
 ## [0.1.1] - 2026-10-29
 
 ### Fixed
@@ -35,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No MCP layer by design (decision D9): every target agent reads skills or runs the CLI.
 - Released on GitCode first; tag `v0.1.0`.
 
-[Unreleased]: https://gitcode.com/petra1218/ds-search/compare/v0.1.1...main
+[Unreleased]: https://gitcode.com/petra1218/ds-search/compare/v0.1.2...main
+[0.1.2]: https://gitcode.com/petra1218/ds-search/compare/v0.1.1...v0.1.2
 [0.1.1]: https://gitcode.com/petra1218/ds-search/compare/v0.1.0...v0.1.1
 [0.1.0]: https://gitcode.com/petra1218/ds-search/releases/tag/v0.1.0

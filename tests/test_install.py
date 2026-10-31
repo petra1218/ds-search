@@ -32,6 +32,15 @@ class InstallerEncodingTests(unittest.TestCase):
             self.assertIn(f'"{agent}"', ps1, f"install.ps1 缺目标 {agent}")
             self.assertIn(agent, sh, f"install.sh 缺目标 {agent}")
 
+    def test_installers_stamp_version(self):
+        """两安装器都必须往 runtime.conf 写 Version 行（doctor 依赖它回显版本）。"""
+        ps1 = (REPO / "install.ps1").read_text(encoding="utf-8-sig")
+        sh = (REPO / "install.sh").read_text(encoding="utf-8")
+        self.assertIn("Version:", ps1)
+        self.assertIn("Version:", sh)
+        repo_conf = (REPO / "skills" / "ds-search" / "runtime.conf").read_text(encoding="utf-8")
+        self.assertIn("Version:", repo_conf)
+
 
 if __name__ == "__main__":
     unittest.main()

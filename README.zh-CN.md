@@ -53,6 +53,23 @@ python ~/.agents/skills/ds-search/scripts/ds_cli.py setup
 
 密钥优先级：`-k` 参数 > 环境变量 `DEEPSEEK_API_KEY` > `~/.ds-search/.env` > `<技能目录>/.env`。`doctor` 一条命令自检 Python / 密钥 / 网络。
 
+## 更新
+
+安装器是幂等覆盖设计——更新就是在旧副本上再跑一遍：
+
+```bash
+cd ds-search && git pull
+./install.sh --agent=zcode       # 每个目标跑一次，或 --agent=all
+```
+
+用 `doctor` 查看已安装版本——首行就是安装器落位时打进 `runtime.conf` 的版本号：
+
+```bash
+python ~/.agents/skills/ds-search/scripts/ds_cli.py doctor   # → 版本: v0.1.2
+```
+
+经 `npx skills add` 安装的副本用 `npx skills update ds-search` 更新。密钥（`~/.ds-search/.env`）与缓存不在技能目录内，更新永远不会碰它们。
+
 ## CLI 用法
 
 ```bash

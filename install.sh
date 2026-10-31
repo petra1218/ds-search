@@ -6,6 +6,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC="$SCRIPT_DIR/skills/ds-search"
 SKILL_NAME="ds-search"
+# 版本戳：安装时取自 git tag，写入 runtime.conf 供 doctor 回显（无 git 环境退 dev）
+VERSION="$(git -C "$SCRIPT_DIR" describe --tags 2>/dev/null || echo dev)"
 
 usage() {
   cat <<'EOF'
@@ -40,8 +42,8 @@ install_to() {
   fi
   mkdir -p "$(dirname "$dest")"
   cp -r "$SRC" "$dest"
-  # runtime.conf 记录本机可执行命令，落位后改写为安装路径
-  printf 'Runtime: Python\nCommand: python %s/scripts/ds_cli.py\n' "$dest" > "$dest/runtime.conf"
+  # runtime.conf 记录版本与本机可执行命令，落位后改写为安装路径
+  printf 'Runtime: Python\nVersion: %s\nCommand: python %s/scripts/ds_cli.py\n' "$VERSION" "$dest" > "$dest/runtime.conf"
   if [ ! -f "$dest/SKILL.md" ] || [ ! -f "$dest/scripts/ds_cli.py" ]; then
     echo "[$agent] 错误: 安装不完整（缺 SKILL.md 或 scripts/ds_cli.py）" >&2
     exit 1

@@ -53,6 +53,23 @@ python ~/.agents/skills/ds-search/scripts/ds_cli.py setup
 
 Key resolution order: `-k` flag > `DEEPSEEK_API_KEY` env var > `~/.ds-search/.env` > `<skill_dir>/.env`. `doctor` verifies Python / key / network in one shot.
 
+## Update
+
+The installer is idempotent — updating means running it again over the old copy:
+
+```bash
+cd ds-search && git pull
+./install.sh --agent=zcode       # repeat per agent, or --agent=all
+```
+
+Check what's installed with `doctor` — its first line is the version the installer stamped into `runtime.conf` at install time:
+
+```bash
+python ~/.agents/skills/ds-search/scripts/ds_cli.py doctor   # → 版本: v0.1.2
+```
+
+If you installed via `npx skills add`, update with `npx skills update ds-search` instead. Keys (`~/.ds-search/.env`) and the cache are never touched by updates — installers only replace the skill directory.
+
 ## CLI usage
 
 ```bash

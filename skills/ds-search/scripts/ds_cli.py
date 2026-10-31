@@ -454,9 +454,20 @@ def render_stats(files):
     return "\n".join(lines)
 
 
-def render_doctor(py_version, key_state, verify_status, cache_files):
+def read_runtime_version(skill_dir):
+    """读技能目录 runtime.conf 的 Version 行（安装器落位时打戳）；缺失返回 unknown。"""
+    try:
+        for line in (Path(skill_dir) / "runtime.conf").read_text(encoding="utf-8-sig").splitlines():
+            if line.startswith("Version:"):
+                return line.split(":", 1)[1].strip() or "unknown"
+    except OSError:
+        pass
+    return "unknown"
+
+
+def render_doctor(py_version, key_state, verify_status, cache_files, version="unknown"):
     """纯函数：三态诊断文本。key_state ∈ {none, invalid, ok}; verify_status 为附加信息或 None。"""
-    lines = [f"Python: {py_version}（要求 3.7+）"]
+    lines = [f"版本: {version}", f"Python: {py_version}（要求 3.7+）"]
     if key_state == "none":
         lines.append("KEY: 未配置（-k / 环境变量 / ~/.ds-search/.env 均未发现）")
         lines.append("诊断: 未配置。按 ds_cli.py setup 引导完成配置")
@@ -500,21 +511,22 @@ def cmd_setup(args, home, env, skill_dir):
 
 
 def cmd_doctor(args, home, env, skill_dir):
+    version = read_runtime_version(skill_dir)
     key = resolve_key(args.api_key, env, home, skill_dir)
     files = _cache_files(home)
     if not key:
-        text, code = render_doctor(sys.version.split()[0], "none", None, files)
+        text, code = render_doctor(sys.version.split()[0], "none", None, files, version)
         print(text)
         return code
     try:
         started = time.time()
         api_post(key, "/v1/tools/search", {"query": "connectivity test", "count": 1}, 30)
         verify = f"校验调用 {int((time.time() - started) * 1000)} ms"
-        text, code = render_doctor(sys.version.split()[0], "ok", verify, files)
+        text, code = render_doctor(sys.version.split()[0], "ok", verify, files, version)
     except ApiError as exc:
         state = "invalid" if exc.status == 401 else "none"
         text, code = render_doctor(sys.version.split()[0], state,
-                                   f"网络/API: {exc}" if exc.status != 401 else None, files)
+                                   f"网络/API: {exc}" if exc.status != 401 else None, files, version)
     print(text)
     return code
 

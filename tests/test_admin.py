@@ -18,27 +18,41 @@ class TestWriteKeyFile(unittest.TestCase):
 
 
 class TestRenderDoctor(unittest.TestCase):
-    """M4 验收：三态输出与预期逐字一致。"""
+    """M4 验收：三态输出与预期逐字一致（首行为版本戳，M6 增补）。"""
 
     def test_state_none(self):
-        text, code = ds.render_doctor("3.12.0", "none", None, [])
+        text, code = ds.render_doctor("3.12.0", "none", None, [], version="v9.9.9")
         lines = text.split("\n")
-        self.assertEqual(lines[0], "Python: 3.12.0（要求 3.7+）")
-        self.assertEqual(lines[1], "KEY: 未配置（-k / 环境变量 / ~/.ds-search/.env 均未发现）")
-        self.assertEqual(lines[2], "诊断: 未配置。按 ds_cli.py setup 引导完成配置")
+        self.assertEqual(lines[0], "版本: v9.9.9")
+        self.assertEqual(lines[1], "Python: 3.12.0（要求 3.7+）")
+        self.assertEqual(lines[2], "KEY: 未配置（-k / 环境变量 / ~/.ds-search/.env 均未发现）")
+        self.assertEqual(lines[3], "诊断: 未配置。按 ds_cli.py setup 引导完成配置")
         self.assertEqual(code, 2)
 
     def test_state_invalid(self):
-        text, code = ds.render_doctor("3.12.0", "invalid", None, [])
+        text, code = ds.render_doctor("3.12.0", "invalid", None, [], version="v9.9.9")
+        self.assertEqual(text.split("\n")[0], "版本: v9.9.9")
         self.assertIn("KEY: 已配置但无效", text)
         self.assertIn("诊断: Key 无效", text)
         self.assertEqual(code, 3)
 
     def test_state_ok(self):
-        text, code = ds.render_doctor("3.12.0", "ok", "校验调用 40 ms", [])
-        self.assertEqual(text.split("\n")[1], "KEY: 有效（校验调用 40 ms）")
+        text, code = ds.render_doctor("3.12.0", "ok", "校验调用 40 ms", [], version="v9.9.9")
+        self.assertEqual(text.split("\n")[0], "版本: v9.9.9")
+        self.assertEqual(text.split("\n")[2], "KEY: 有效（校验调用 40 ms）")
         self.assertEqual(code, 0)
         self.assertIn("诊断: 正常", text)
+
+    def test_version_defaults_to_unknown(self):
+        text, _ = ds.render_doctor("3.12.0", "none", None, [])
+        self.assertEqual(text.split("\n")[0], "版本: unknown")
+
+    def test_read_runtime_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(ds.read_runtime_version(tmp), "unknown")
+            skill = Path(tmp) / "runtime.conf"
+            skill.write_text("Runtime: Python\nVersion: v0.1.2\nCommand: x\n", encoding="utf-8")
+            self.assertEqual(ds.read_runtime_version(tmp), "v0.1.2")
 
 
 class TestRenderStats(unittest.TestCase):
